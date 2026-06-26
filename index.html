@@ -1,98 +1,70 @@
 <!DOCTYPE html>
-<html lang='es'>
+<html>
 <head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'>
-  <title>Ñemu Phone - Fix</title>
-  <style>
-    body{background:#000;color:#fff;font-family:sans-serif;padding:20px;text-align:center;}
-    .box{background:#1c1c1e;padding:20px;border-radius:15px;margin-top:20px;}
-    .btn{padding:15px;width:100%;border-radius:10px;border:none;font-weight:bold;margin-top:10px;cursor:pointer;}
-    .btn-blue{background:#0a84ff;color:#fff;}
-    .btn-green{background:#30d158;color:#000;}
-    .err{color:#ff453a;font-size:0.9rem;margin-top:10px;display:none;background:#311;padding:10px;border-radius:8px;}
-    input{width:100%;padding:15px;border-radius:10px;border:1px solid #333;background:#000;color:#fff;margin-top:10px;}
-  </style>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Nemu Test</title>
 </head>
-<body>
-  <h1>Ñemu Phone</h1>
-  
-  <div id='step1' class='box'>
-    <h3>Paso 1: Permisos</h3>
-    <p style='color:#888;font-size:0.9rem;'>Para que funcione, debes usar Google Chrome o Safari.</p>
-    <div id='diag' style='color:#f1c40f;font-size:0.8rem;margin:10px 0;'></div>
-    <button class='btn btn-green' onclick='pedirPermisos()'>PERMITIR CÁMARA</button>
-    <div id='error' class='err'></div>
-  </div>
+<body style='background:#000; color:#fff; font-family:sans-serif; text-align:center;'>
+    <h2>Telefono de Nemu</h2>
+    
+    <div id='setup'>
+        <p>1. Activa tu camara:</p>
+        <button onclick='initCam()' style='padding:20px; background:green; color:white;'>ACTIVAR CAMARA</button>
+    </div>
 
-  <div id='step2' class='box' style='display:none;'>
-    <h3>Paso 2: Activar</h3>
-    <input id='myId' type='tel' placeholder='Tu número (ej: 1001)'>
-    <button class='btn btn-blue' onclick='entrar()'>ENTRAR AL TELÉFONO</button>
-  </div>
+    <div id='login' style='display:none;'>
+        <p>2. Tu Numero:</p>
+        <input id='myId' type='tel' placeholder='Ej: 1001' style='padding:10px;'>
+        <button onclick='connect()' style='padding:10px;'>CONECTAR</button>
+    </div>
 
-  <div id='app' style='display:none;'>
-    <h2 id='miIdShow'></h2>
-    <input id='dest' type='tel' placeholder='Número a llamar'>
-    <button class='btn btn-green' onclick='llamar()'>LLAMAR</button>
-    <button class='btn' style='background:#ff453a;color:#fff' onclick='location.reload()'>CERRAR</button>
-    <video id='remote' autoplay playsinline style='width:100%;margin-top:20px;border-radius:10px;background:#111;min-height:200px;'></video>
-    <video id='local' autoplay playsinline muted style='width:100px;position:fixed;top:10px;right:10px;border:2px solid #fff;border-radius:10px;'></video>
-  </div>
+    <div id='dialer' style='display:none;'>
+        <p>Conectado como: <b id='showId'></b></p>
+        <input id='destId' type='tel' placeholder='Llamar a...' style='padding:10px;'>
+        <button onclick='makeCall()' style='padding:10px; background:blue; color:white;'>LLAMAR</button>
+        <br><br>
+        <video id='remote' autoplay playsinline style='width:90%; background:#222; min-height:200px;'></video>
+        <video id='local' autoplay playsinline muted style='width:100px; border:1px solid #fff;'></video>
+    </div>
 
-  <div style='margin-top:30px;'>
-    <button class='btn' style='background:#333;color:#fff;font-size:0.8rem;' onclick='copiarLink()'>Copiar Link para abrir en Chrome</button>
-  </div>
+    <script src='https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js'></script>
+    <script>
+        let myStream, peer;
 
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script>
-    let stream, peer;
-
-    window.onload = () => {
-      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-        document.getElementById('diag').innerText = "AVISO: Estás en un navegador limitado. Copia el link y ábrelo en CHROME.";
-      }
-    };
-
-    async function pedirPermisos(){
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-        document.getElementById('local').srcObject = stream;
-        document.getElementById('step1').style.display = "none";
-        document.getElementById('step2').style.display = "block";
-      } catch(e) {
-        document.getElementById('error').innerText = "Error: No se pudo activar la cámara. Revisa los permisos del navegador.";
-        document.getElementById('error').style.display = "block";
-      }
-    }
-
-    function entrar(){
-      const id = document.getElementById("myId").value;
-      if(!id) return;
-      peer = new Peer("nemu-"+id, {host:"0.peerjs.com", port:443, secure:true});
-      peer.on("open", () => {
-        document.getElementById("miIdShow").innerText = "ID: " + id;
-        document.getElementById("step2").style.display = "none";
-        document.getElementById("app").style.display = "block";
-      });
-      peer.on("call", call => {
-        if(confirm("Contestar?")){
-          call.answer(stream);
-          call.on("stream", rs => document.getElementById("remote").srcObject = rs);
+        async function initCam() {
+            try {
+                myStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+                document.getElementById('local').srcObject = myStream;
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('login').style.display = 'block';
+            } catch(e) {
+                alert('Error de camara: ' + e.message + '. REVISA LOS PERMISOS EN CHROME.');
+            }
         }
-      });
-    }
 
-    function llamar(){
-      const d = document.getElementById("dest").value;
-      const call = peer.call("nemu-"+d, stream);
-      call.on("stream", rs => document.getElementById("remote").srcObject = rs);
-    }
+        function connect() {
+            const id = document.getElementById('myId').value;
+            if(!id) return;
+            peer = new Peer('nemu-' + id, {host:'0.peerjs.com', port:443, secure:true});
+            peer.on('open', () => {
+                document.getElementById('showId').innerText = id;
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('dialer').style.display = 'block';
+            });
+            peer.on('call', call => {
+                if(confirm('Te llaman! Contestar?')) {
+                    call.answer(myStream);
+                    call.on('stream', rs => document.getElementById('remote').srcObject = rs);
+                }
+            });
+        }
 
-    function copiarLink(){
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copiado. Ábrelo en la app de Chrome de tu celular.");
-    }
-  </script>
+        function makeCall() {
+            const dest = document.getElementById('destId').value;
+            const call = peer.call('nemu-' + dest, myStream);
+            call.on('stream', rs => document.getElementById('remote').srcObject = rs);
+        }
+    </script>
 </body>
 </html>
