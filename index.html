@@ -1,268 +1,149 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang='es'>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Ñemu</title>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'>
+  <title>Ñemu Phone</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
-    :root{
-      --bg:#000;--card:#1c1c1e;--card2:#2c2c2e;
-      --accent:#30d158;--blue:#0a84ff;--red:#ff453a;
-      --text:#fff;--muted:rgba(255,255,255,.55);--border:rgba(255,255,255,.12);
-    }
-    html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-      font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;}
-    .screen{display:none;position:fixed;inset:0;overflow-y:auto;}
-    .screen.active{display:flex;flex-direction:column;}
-    
-    /* AUTH */
-    #authScreen,#regScreen{align-items:center;justify-content:center;padding:24px;}
-    .auth-wrap{width:100%;max-width:360px;display:flex;flex-direction:column;gap:24px;}
-    .auth-logo{text-align:center;}
-    .auth-logo h1{font-size:2.5rem;font-weight:800;}
-    .auth-card{background:var(--card);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);}
-    .field{display:flex;flex-direction:column;gap:6px;}
-    .field input{background:var(--card2);border:1px solid var(--border);border-radius:13px;color:#fff;padding:14px;outline:none;}
-    .btn{border:none;border-radius:14px;padding:14px;font-weight:600;cursor:pointer;font-size:1rem;}
-    .btn-blue{background:var(--blue);color:#fff;}
-    .btn-green{background:var(--accent);color:#000;}
-    
-    /* APP */
-    .topnav{display:flex;justify-content:space-between;padding:16px 20px;align-items:center;}
-    .uname{font-size:1.2rem;font-weight:700;}
-    .unum{font-size:0.9rem;color:var(--muted);display:flex;align-items:center;gap:6px;}
-    .dot{width:8px;height:8px;border-radius:50%;background:#444;}
-    .dot.on{background:var(--accent);box-shadow:0 0 8px var(--accent);}
-    
-    /* DIALER */
-    .dial-display{text-align:center;padding:40px 20px;}
-    #dialNum{font-size:3.5rem;font-weight:200;letter-spacing:4px;min-height:80px;}
-    .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:280px;margin:0 auto;}
-    .key{width:72px;height:72px;border-radius:50%;background:var(--card2);border:none;color:#fff;font-size:1.8rem;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-    .key:active{background:#3a3a3c;}
-    .key.call{background:var(--accent);color:#000;}
-    .key.vcall{background:var(--blue);color:#fff;}
-    
-    /* CALL SCREEN */
-    #callScreen{background:#000;}
-    .vid-container{flex:1;position:relative;background:#111;}
-    #remoteVideo{width:100%;height:100%;object-fit:cover;}
-    #localVideo{position:absolute;bottom:20px;right:20px;width:100px;height:140px;border-radius:12px;object-fit:cover;border:2px solid #fff;}
-    .call-info{position:absolute;top:40px;left:0;right:0;text-align:center;text-shadow:0 2px 4px rgba(0,0,0,0.8);}
-    .call-name{font-size:1.8rem;font-weight:700;}
-    .call-status{font-size:1rem;color:rgba(255,255,255,0.7);}
-    .call-controls{background:rgba(0,0,0,0.8);padding:30px 20px 50px;display:flex;justify-content:space-around;align-items:center;}
-    .ctrl-btn{width:64px;height:64px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;}
-    .btn-hangup{background:var(--red);color:#fff;}
-    .btn-mute{background:rgba(255,255,255,0.1);color:#fff;}
-    
-    /* INCOMING */
-    #incomingScreen{background:linear-gradient(to bottom, #1a2a1a, #000);justify-content:center;align-items:center;}
-    .inc-box{text-align:center;display:flex;flex-direction:column;gap:40px;}
-    .inc-avatar{width:120px;height:120px;border-radius:50%;background:var(--accent);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:4rem;}
-    .inc-btns{display:flex;gap:60px;justify-content:center;}
-    .inc-btn{width:72px;height:72px;border-radius:50%;border:none;font-size:2rem;cursor:pointer;}
-    .ans{background:var(--accent);}
-    .rej{background:var(--red);}
+    :root{--bg:#000;--card:#1c1c1e;--accent:#30d158;--blue:#0a84ff;--red:#ff453a;--text:#fff;}
+    body{background:var(--bg);color:var(--text);font-family:system-ui;height:100vh;display:flex;flex-direction:column;}
+    .screen{display:none;flex:1;flex-direction:column;}
+    .active{display:flex;}
+    .dial-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;padding:20px;max-width:300px;margin:0 auto;}
+    .key{width:70px;height:70px;border-radius:50%;background:#222;border:none;color:#fff;font-size:1.5rem;cursor:pointer;}
+    .key:active{background:#444;}
+    .key.call{background:var(--accent);}
+    #display{font-size:3rem;text-align:center;padding:40px;height:120px;}
+    .video-full{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;}
+    video{width:100%;height:100%;object-fit:cover;}
+    .controls{position:absolute;bottom:40px;width:100%;display:flex;justify-content:center;gap:30px;}
+    .hangup{width:70px;height:70px;background:var(--red);border-radius:50%;border:none;color:#fff;font-size:1.5rem;}
+    #incoming{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;}
+    .btn-ans{background:var(--accent);padding:20px 40px;border-radius:30px;border:none;color:#fff;font-size:1.2rem;}
   </style>
 </head>
 <body>
 
-<div class="screen active" id="authScreen">
-  <div class="auth-wrap">
-    <div class="auth-logo"><h1>Ñemu</h1><p>Llamadas directas</p></div>
-    <div class="auth-card">
-      <div class="field"><label>Número</label><input type="tel" id="loginNum" placeholder="1001"></div>
-      <button class="btn btn-blue" onclick="login()">Entrar</button>
-      <p style="text-align:center;font-size:0.9rem;color:var(--muted)">¿No tienes cuenta? <span style="color:var(--blue)" onclick="show('regScreen')">Regístrate</span></p>
-    </div>
+<div id='login' class='screen active' style='justify-content:center;padding:40px;'>
+  <h1 style='text-align:center;margin-bottom:20px;'>Ñemu</h1>
+  <input id='myNum' type='tel' placeholder='Tu número' style='padding:15px;border-radius:10px;border:none;margin-bottom:10px;'>
+  <button onclick='start()' style='padding:15px;background:var(--blue);border:none;border-radius:10px;color:#fff;'>Entrar</button>
+</div>
+
+<div id='main' class='screen'>
+  <div id='display'></div>
+  <div class='dial-pad'>
+    <button class='key' onclick='press("1")'>1</button><button class='key' onclick='press("2")'>2</button><button class='key' onclick='press("3")'>3</button>
+    <button class='key' onclick='press("4")'>4</button><button class='key' onclick='press("5")'>5</button><button class='key' onclick='press("6")'>6</button>
+    <button class='key' onclick='press("7")'>7</button><button class='key' onclick='press("8")'>8</button><button class='key' onclick='press("9")'>9</button>
+    <button class='key' onclick='press("*")'>*</button><button class='key' onclick='press("0")'>0</button><button class='key' onclick='press("#")'>#</button>
+    <button class='key' style='background:var(--red)' onclick='press("C")'>X</button>
+    <button class='key call' onclick='call()' style='grid-column: span 2;width:100%;border-radius:35px;'>Llamar</button>
   </div>
 </div>
 
-<div class="screen" id="regScreen">
-  <div class="auth-wrap">
-    <div class="auth-logo"><h1>Ñemu</h1><p>Registro rápido</p></div>
-    <div class="auth-card">
-      <div class="field"><label>Tu Nombre</label><input type="text" id="regName" placeholder="Daniel"></div>
-      <div class="field"><label>Número</label><input type="tel" id="regNum" placeholder="1001"></div>
-      <button class="btn btn-green" onclick="register()">Crear Cuenta</button>
-      <p style="text-align:center;font-size:0.9rem;color:var(--muted)" onclick="show('authScreen')">Ya tengo cuenta</p>
-    </div>
+<div id='call' class='screen video-full'>
+  <video id='remoteVideo' autoplay playsinline></video>
+  <video id='localVideo' autoplay playsinline muted style='position:absolute;top:20px;right:20px;width:100px;height:150px;border-radius:10px;border:2px solid #fff;'></video>
+  <div class='controls'>
+    <button class='hangup' onclick='hangup()'>📵</button>
   </div>
 </div>
 
-<div class="screen" id="appScreen">
-  <div class="topnav">
-    <div><div class="uname" id="uName">Daniel</div><div class="unum"><span class="dot" id="dot"></span> <span id="uNum">1001</span></div></div>
-    <button class="btn" style="background:transparent;color:var(--red)" onclick="location.reload()">Salir</button>
-  </div>
-  <div class="dial-display"><div id="dialNum"></div></div>
-  <div class="keypad">
-    <button class="key" onclick="kp('1')">1</button><button class="key" onclick="kp('2')">2</button><button class="key" onclick="kp('3')">3</button>
-    <button class="key" onclick="kp('4')">4</button><button class="key" onclick="kp('5')">5</button><button class="key" onclick="kp('6')">6</button>
-    <button class="key" onclick="kp('7')">7</button><button class="key" onclick="kp('8')">8</button><button class="key" onclick="kp('9')">9</button>
-    <button class="key" onclick="kp('*')">*</button><button class="key" onclick="kp('0')">0</button><button class="key" onclick="kp('#')">#</button>
-    <button class="key call" onclick="makeCall(false)">📞</button>
-    <button class="key vcall" onclick="makeCall(true)">📹</button>
-    <button class="key" style="background:var(--red)" onclick="kpDel()">⌫</button>
-  </div>
-</div>
-
-<div class="screen" id="incomingScreen">
-  <div class="inc-box">
-    <div class="inc-avatar">👤</div>
-    <div><h2 id="incName">Llamada de...</h2><p id="incNumDisplay">1002</p></div>
-    <div class="inc-btns">
-      <button class="inc-btn rej" onclick="rejectCall()">📵</button>
-      <button class="inc-btn ans" onclick="answerCall()">📞</button>
-    </div>
-  </div>
-</div>
-
-<div class="screen" id="callScreen">
-  <div class="vid-container">
-    <video id="remoteVideo" autoplay playsinline></video>
-    <video id="localVideo" autoplay playsinline muted></video>
-    <div class="call-info">
-      <div class="call-name" id="peerName">...</div>
-      <div class="call-status" id="callStatus">Conectando...</div>
-    </div>
-  </div>
-  <div class="call-controls">
-    <button class="ctrl-btn btn-mute" id="muteBtn" onclick="toggleMute()">🎙️</button>
-    <button class="ctrl-btn btn-hangup" onclick="hangup()">📵</button>
-    <button class="ctrl-btn btn-mute" onclick="toggleVideo()">📷</button>
+<div id='incoming'>
+  <h2 id='callerID' style='margin-bottom:30px;'>Llamada entrante...</h2>
+  <div style='display:flex;gap:40px;'>
+    <button class='btn-ans' onclick='answer()'>Contestar</button>
+    <button onclick='reject()' style='background:var(--red);border:none;padding:20px;border-radius:50%;'>❌</button>
   </div>
 </div>
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-let peer, localStream, currentCall, pendingCall;
-let myNum, dialStr = "";
+let peer, localStream, currentCall, dialStr = "", audioCtx, ringOsc;
 
-function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function press(n){
+  if(n=="C") dialStr = ""; else dialStr += n;
+  document.getElementById("display").innerText = dialStr;
 }
 
-function login(){
-  let num = document.getElementById('loginNum').value;
-  if(!num) return alert("Pon tu número");
-  myNum = num;
-  initPeer();
-}
-
-function register(){
-  let num = document.getElementById('regNum').value;
-  let name = document.getElementById('regName').value;
-  if(!num || !name) return alert("Completa los datos");
-  myNum = num;
-  document.getElementById('uName').innerText = name;
-  initPeer();
-}
-
-function initPeer(){
-  peer = new Peer('nemu-' + myNum, {
-    host: '0.peerjs.com', port: 443, path: '/', secure: true,
-    config: { iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }
-    ]}
+function start(){
+  const n = document.getElementById("myNum").value;
+  if(!n) return;
+  peer = new Peer("nemu-"+n, {host:"0.peerjs.com", port:443, secure:true});
+  peer.on("open", () => { 
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById("main").classList.add("active");
   });
-
-  peer.on('open', () => {
-    document.getElementById('dot').classList.add('on');
-    document.getElementById('uNum').innerText = myNum;
-    show('appScreen');
-  });
-
-  peer.on('call', call => {
-    pendingCall = call;
-    document.getElementById('incNumDisplay').innerText = call.peer.replace('nemu-','');
-    show('incomingScreen');
-    if(navigator.vibrate) navigator.vibrate([500, 200, 500]);
+  peer.on("call", call => {
+    window.pendingCall = call;
+    document.getElementById("callerID").innerText = "Llamada de: " + call.peer.replace("nemu-","");
+    document.getElementById("incoming").style.display = "flex";
+    startRinging(440, 660); // Sonido de entrada
   });
 }
 
-function kp(d){ dialStr += d; document.getElementById('dialNum').innerText = dialStr; }
-function kpDel(){ dialStr = dialStr.slice(0,-1); document.getElementById('dialNum').innerText = dialStr; }
+function startRinging(f1, f2){
+  stopRinging();
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  ringOsc = setInterval(() => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(f1, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + 0.5);
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.6);
+  }, 1000);
+}
 
-let ringInterval;
-function startRingingSound(){
+function stopRinging(){
+  if(ringOsc) clearInterval(ringOsc);
+}
+
+async function call(){
+  if(!dialStr) return;
+  startRinging(400, 450); // El "turuturu"
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    ringInterval = setInterval(() => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(480, ctx.currentTime + 0.5);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + 0.5);
-    }, 1000);
-  } catch(e){}
-}
-function stopRingingSound(){ if(ringInterval) clearInterval(ringInterval); }
-
-async function makeCall(video){
-  startRingingSound();
-  let dest = dialStr;
-  if(!dest) return;
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-    document.getElementById('localVideo').srcObject = localStream;
-    show('callScreen');
-    document.getElementById('peerName').innerText = dest;
-    
-    currentCall = peer.call('nemu-' + dest, localStream);
-    setupCallHandlers(currentCall);
-  } catch(e) { alert("Error de cámara/micrófono"); }
+    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+    document.getElementById("localVideo").srcObject = localStream;
+    currentCall = peer.call("nemu-"+dialStr, localStream);
+    handleCall(currentCall);
+  } catch(e){ stopRinging(); alert("Permiso denegado"); }
 }
 
-async function answerCall(){
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-    document.getElementById('localVideo').srcObject = localStream;
-    pendingCall.answer(localStream);
-    currentCall = pendingCall;
-    show('callScreen');
-    document.getElementById('peerName').innerText = currentCall.peer.replace('nemu-','');
-    setupCallHandlers(currentCall);
-  } catch(e) { alert("Error al contestar"); }
-}
-
-function setupCallHandlers(call){
-  call.on('stream', remoteStream => {
-    document.getElementById('remoteVideo').srcObject = remoteStream;
-    stopRingingSound(); document.getElementById('callStatus').innerText = "En llamada";
+function handleCall(c){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("call").classList.add("active");
+  c.on("stream", rs => {
+    stopRinging();
+    document.getElementById("remoteVideo").srcObject = rs;
   });
-  call.on('close', () => hangup());
-  call.on('error', () => hangup());
+  c.on("close", hangup);
 }
 
-function rejectCall(){ pendingCall.close(); show('appScreen'); }
-
-function hangup(){ stopRingingSound();
-  if(currentCall) currentCall.close();
-  if(localStream) localStream.getTracks().forEach(t => t.stop());
-  show('appScreen');
-  dialStr = "";
-  document.getElementById('dialNum').innerText = "";
+async function answer(){
+  document.getElementById("incoming").style.display = "none";
+  stopRinging();
+  localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+  document.getElementById("localVideo").srcObject = localStream;
+  window.pendingCall.answer(localStream);
+  handleCall(window.pendingCall);
 }
 
-function toggleMute(){
-  let audio = localStream.getAudioTracks()[0];
-  audio.enabled = !audio.enabled;
-  document.getElementById('muteBtn').innerText = audio.enabled ? "🎙️" : "🔇";
+function reject(){
+  document.getElementById("incoming").style.display = "none";
+  stopRinging();
+  window.pendingCall.close();
 }
 
-function toggleVideo(){
-  let video = localStream.getVideoTracks()[0];
-  video.enabled = !video.enabled;
+function hangup(){
+  stopRinging();
+  if(localStream) localStream.getTracks().forEach(t=>t.stop());
+  location.reload();
 }
 </script>
 </body>
