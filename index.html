@@ -7,144 +7,158 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
     :root{--bg:#000;--card:#1c1c1e;--accent:#30d158;--blue:#0a84ff;--red:#ff453a;--text:#fff;}
-    body{background:var(--bg);color:var(--text);font-family:system-ui;height:100vh;display:flex;flex-direction:column;}
-    .screen{display:none;flex:1;flex-direction:column;}
+    body{background:var(--bg);color:var(--text);font-family:system-ui;height:100vh;display:flex;flex-direction:column;margin:0;}
+    .screen{display:none;flex:1;flex-direction:column;padding:20px;}
     .active{display:flex;}
-    .dial-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;padding:20px;max-width:300px;margin:0 auto;}
-    .key{width:70px;height:70px;border-radius:50%;background:#222;border:none;color:#fff;font-size:1.5rem;cursor:pointer;}
-    .key:active{background:#444;}
-    .key.call{background:var(--accent);}
-    #display{font-size:3rem;text-align:center;padding:40px;height:120px;}
-    .video-full{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;}
+    .btn{padding:15px;border-radius:12px;border:none;font-weight:bold;cursor:pointer;font-size:1rem;}
+    .btn-blue{background:var(--blue);color:#fff;}
+    .btn-green{background:var(--accent);color:#fff;}
+    input{padding:15px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;font-size:1.2rem;margin-bottom:15px;}
+    .dial-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;max-width:300px;margin:20px auto;}
+    .key{width:70px;height:70px;border-radius:50%;background:#222;border:none;color:#fff;font-size:1.5rem;}
+    #display{font-size:3rem;text-align:center;padding:20px;height:100px;}
+    .error-box{background:#411;color:#f88;padding:15px;border-radius:10px;margin-bottom:20px;display:none;font-size:0.9rem;}
+    #videoArea{position:fixed;inset:0;background:#000;z-index:1000;display:none;flex-direction:column;}
     video{width:100%;height:100%;object-fit:cover;}
-    .controls{position:absolute;bottom:40px;width:100%;display:flex;justify-content:center;gap:30px;}
-    .hangup{width:70px;height:70px;background:var(--red);border-radius:50%;border:none;color:#fff;font-size:1.5rem;}
-    #incoming{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:100;}
-    .btn-ans{background:var(--accent);padding:20px 40px;border-radius:30px;border:none;color:#fff;font-size:1.2rem;}
+    .controls{position:absolute;bottom:40px;width:100%;display:flex;justify-content:center;}
+    .hangup{width:75px;height:75px;background:var(--red);border-radius:50%;border:none;color:#fff;font-size:1.8rem;}
   </style>
 </head>
 <body>
 
-<div id='login' class='screen active' style='justify-content:center;padding:40px;'>
-  <h1 style='text-align:center;margin-bottom:20px;'>Ñemu</h1>
-  <input id='myNum' type='tel' placeholder='Tu número' style='padding:15px;border-radius:10px;border:none;margin-bottom:10px;'>
-  <button onclick='start()' style='padding:15px;background:var(--blue);border:none;border-radius:10px;color:#fff;'>Entrar</button>
+<div id='setupScreen' class='screen active'>
+  <h1 style='text-align:center;margin:40px 0 10px;'>Ñemu Phone</h1>
+  <p style='text-align:center;color:#888;margin-bottom:30px;'>Configuración inicial</p>
+  
+  <div id='errBox' class='error-box'></div>
+  
+  <div style='display:flex;flex-direction:column;'>
+    <label style='margin-bottom:8px;color:#888;'>Tu número (ID):</label>
+    <input id='myId' type='tel' placeholder='Ej: 1001'>
+    
+    <button class='btn btn-blue' onclick='checkAndStart()'>Activar Teléfono</button>
+  </div>
+  
+  <div style='margin-top:40px;font-size:0.8rem;color:#555;text-align:center;'>
+    Asegúrate de estar usando HTTPS y permitir cámara/micro.
+  </div>
 </div>
 
-<div id='main' class='screen'>
+<div id='mainScreen' class='screen'>
+  <div style='display:flex;justify-content:space-between;align-items:center;'>
+    <span id='statusLabel'>● Conectado</span>
+    <span id='myIdLabel' style='color:var(--accent);font-weight:bold;'></span>
+  </div>
+  
   <div id='display'></div>
+  
   <div class='dial-pad'>
     <button class='key' onclick='press("1")'>1</button><button class='key' onclick='press("2")'>2</button><button class='key' onclick='press("3")'>3</button>
     <button class='key' onclick='press("4")'>4</button><button class='key' onclick='press("5")'>5</button><button class='key' onclick='press("6")'>6</button>
     <button class='key' onclick='press("7")'>7</button><button class='key' onclick='press("8")'>8</button><button class='key' onclick='press("9")'>9</button>
-    <button class='key' onclick='press("*")'>*</button><button class='key' onclick='press("0")'>0</button><button class='key' onclick='press("#")'>#</button>
-    <button class='key' style='background:var(--red)' onclick='press("C")'>X</button>
-    <button class='key call' onclick='call()' style='grid-column: span 2;width:100%;border-radius:35px;'>Llamar</button>
+    <button class='key' onclick='press("*")'>*</button><button class='key' onclick='press("0")'>0</button><button class='key' onclick='press("C")'>X</button>
+    <button class='key' style='background:var(--accent);grid-column:span 3;width:100%;border-radius:15px;margin-top:10px;' onclick='makeCall()'>LLAMAR</button>
   </div>
 </div>
 
-<div id='call' class='screen video-full'>
-  <video id='remoteVideo' autoplay playsinline></video>
-  <video id='localVideo' autoplay playsinline muted style='position:absolute;top:20px;right:20px;width:100px;height:150px;border-radius:10px;border:2px solid #fff;'></video>
-  <div class='controls'>
-    <button class='hangup' onclick='hangup()'>📵</button>
-  </div>
-</div>
-
-<div id='incoming'>
-  <h2 id='callerID' style='margin-bottom:30px;'>Llamada entrante...</h2>
-  <div style='display:flex;gap:40px;'>
-    <button class='btn-ans' onclick='answer()'>Contestar</button>
-    <button onclick='reject()' style='background:var(--red);border:none;padding:20px;border-radius:50%;'>❌</button>
-  </div>
+<div id='videoArea'>
+  <video id='remoteVid' autoplay playsinline></video>
+  <video id='localVid' autoplay playsinline muted style='position:absolute;top:20px;right:20px;width:100px;height:140px;border-radius:12px;border:2px solid #fff;'></video>
+  <div class='controls'><button class='hangup' onclick='endCall()'>📵</button></div>
 </div>
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-let peer, localStream, currentCall, dialStr = "", audioCtx, ringOsc;
+let peer, localStream, currentCall, dialStr = "", ringInt;
+
+function showError(txt){
+  const b = document.getElementById("errBox");
+  b.innerText = txt; b.style.display = "block";
+}
+
+async function checkAndStart(){
+  const id = document.getElementById("myId").value;
+  if(!id) return showError("Escribe un número para tu cuenta");
+
+  try {
+    // Intentar pedir permisos ANTES de iniciar todo
+    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+    document.getElementById("localVid").srcObject = localStream;
+    
+    startPeer(id);
+  } catch(e) {
+    showError("ERROR: No se pudo acceder a la cámara. Ve a los ajustes del navegador y permite el acceso para esta página.");
+    console.error(e);
+  }
+}
+
+function startPeer(id){
+  peer = new Peer("nemu-"+id, {host:"0.peerjs.com", port:443, secure:true});
+  
+  peer.on("open", () => {
+    document.getElementById("myIdLabel").innerText = "ID: " + id;
+    document.getElementById("setupScreen").classList.remove("active");
+    document.getElementById("mainScreen").classList.add("active");
+  });
+
+  peer.on("call", call => {
+    if(confirm("Llamada entrante de " + call.peer.replace("nemu-","") + ". ¿Contestar?")){
+      call.answer(localStream);
+      setupCall(call);
+    } else {
+      call.close();
+    }
+  });
+
+  peer.on("error", e => showError("Error de conexión: " + e.type));
+}
 
 function press(n){
   if(n=="C") dialStr = ""; else dialStr += n;
   document.getElementById("display").innerText = dialStr;
 }
 
-function start(){
-  const n = document.getElementById("myNum").value;
-  if(!n) return;
-  peer = new Peer("nemu-"+n, {host:"0.peerjs.com", port:443, secure:true});
-  peer.on("open", () => { 
-    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-    document.getElementById("main").classList.add("active");
-  });
-  peer.on("call", call => {
-    window.pendingCall = call;
-    document.getElementById("callerID").innerText = "Llamada de: " + call.peer.replace("nemu-","");
-    document.getElementById("incoming").style.display = "flex";
-    startRinging(440, 660); // Sonido de entrada
-  });
+function makeCall(){
+  if(!dialStr) return;
+  startRingtone();
+  currentCall = peer.call("nemu-"+dialStr, localStream);
+  setupCall(currentCall);
 }
 
-function startRinging(f1, f2){
-  stopRinging();
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  ringOsc = setInterval(() => {
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(f1, audioCtx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + 0.5);
-    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(); o.stop(audioCtx.currentTime + 0.6);
+function setupCall(call){
+  currentCall = call;
+  document.getElementById("videoArea").style.display = "flex";
+  
+  call.on("stream", rs => {
+    stopRingtone();
+    document.getElementById("remoteVid").srcObject = rs;
+  });
+  call.on("close", endCall);
+  call.on("error", endCall);
+}
+
+function endCall(){
+  stopRingtone();
+  if(currentCall) currentCall.close();
+  document.getElementById("videoArea").style.display = "none";
+  dialStr = "";
+  document.getElementById("display").innerText = "";
+}
+
+function startRingtone(){
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  ringInt = setInterval(() => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.setValueAtTime(440, ctx.currentTime);
+    g.gain.setValueAtTime(0.1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + 0.6);
   }, 1000);
 }
 
-function stopRinging(){
-  if(ringOsc) clearInterval(ringOsc);
-}
-
-async function call(){
-  if(!dialStr) return;
-  startRinging(400, 450); // El "turuturu"
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-    document.getElementById("localVideo").srcObject = localStream;
-    currentCall = peer.call("nemu-"+dialStr, localStream);
-    handleCall(currentCall);
-  } catch(e){ stopRinging(); alert("Permiso denegado"); }
-}
-
-function handleCall(c){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById("call").classList.add("active");
-  c.on("stream", rs => {
-    stopRinging();
-    document.getElementById("remoteVideo").srcObject = rs;
-  });
-  c.on("close", hangup);
-}
-
-async function answer(){
-  document.getElementById("incoming").style.display = "none";
-  stopRinging();
-  localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-  document.getElementById("localVideo").srcObject = localStream;
-  window.pendingCall.answer(localStream);
-  handleCall(window.pendingCall);
-}
-
-function reject(){
-  document.getElementById("incoming").style.display = "none";
-  stopRinging();
-  window.pendingCall.close();
-}
-
-function hangup(){
-  stopRinging();
-  if(localStream) localStream.getTracks().forEach(t=>t.stop());
-  location.reload();
-}
+function stopRingtone(){ if(ringInt) clearInterval(ringInt); }
 </script>
 </body>
 </html>
