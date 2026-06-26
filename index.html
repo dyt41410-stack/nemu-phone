@@ -3,162 +3,96 @@
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover'>
-  <title>Ñemu Phone</title>
+  <title>Ñemu Phone - Fix</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
-    :root{--bg:#000;--card:#1c1c1e;--accent:#30d158;--blue:#0a84ff;--red:#ff453a;--text:#fff;}
-    body{background:var(--bg);color:var(--text);font-family:system-ui;height:100vh;display:flex;flex-direction:column;margin:0;}
-    .screen{display:none;flex:1;flex-direction:column;padding:20px;}
-    .active{display:flex;}
-    .btn{padding:15px;border-radius:12px;border:none;font-weight:bold;cursor:pointer;font-size:1rem;}
-    .btn-blue{background:var(--blue);color:#fff;}
-    .btn-green{background:var(--accent);color:#fff;}
-    input{padding:15px;border-radius:12px;border:1px solid #333;background:#111;color:#fff;font-size:1.2rem;margin-bottom:15px;}
-    .dial-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;max-width:300px;margin:20px auto;}
-    .key{width:70px;height:70px;border-radius:50%;background:#222;border:none;color:#fff;font-size:1.5rem;}
-    #display{font-size:3rem;text-align:center;padding:20px;height:100px;}
-    .error-box{background:#411;color:#f88;padding:15px;border-radius:10px;margin-bottom:20px;display:none;font-size:0.9rem;}
-    #videoArea{position:fixed;inset:0;background:#000;z-index:1000;display:none;flex-direction:column;}
-    video{width:100%;height:100%;object-fit:cover;}
-    .controls{position:absolute;bottom:40px;width:100%;display:flex;justify-content:center;}
-    .hangup{width:75px;height:75px;background:var(--red);border-radius:50%;border:none;color:#fff;font-size:1.8rem;}
+    body{background:#000;color:#fff;font-family:sans-serif;padding:20px;text-align:center;}
+    .box{background:#1c1c1e;padding:20px;border-radius:15px;margin-top:20px;}
+    .btn{padding:15px;width:100%;border-radius:10px;border:none;font-weight:bold;margin-top:10px;cursor:pointer;}
+    .btn-blue{background:#0a84ff;color:#fff;}
+    .btn-green{background:#30d158;color:#000;}
+    .err{color:#ff453a;font-size:0.9rem;margin-top:10px;display:none;background:#311;padding:10px;border-radius:8px;}
+    input{width:100%;padding:15px;border-radius:10px;border:1px solid #333;background:#000;color:#fff;margin-top:10px;}
   </style>
 </head>
 <body>
-
-<div id='setupScreen' class='screen active'>
-  <h1 style='text-align:center;margin:40px 0 10px;'>Ñemu Phone</h1>
-  <p style='text-align:center;color:#888;margin-bottom:30px;'>Configuración inicial</p>
+  <h1>Ñemu Phone</h1>
   
-  <div id='errBox' class='error-box'></div>
-  
-  <div style='display:flex;flex-direction:column;'>
-    <label style='margin-bottom:8px;color:#888;'>Tu número (ID):</label>
-    <input id='myId' type='tel' placeholder='Ej: 1001'>
-    
-    <button class='btn btn-blue' onclick='checkAndStart()'>Activar Teléfono</button>
+  <div id='step1' class='box'>
+    <h3>Paso 1: Permisos</h3>
+    <p style='color:#888;font-size:0.9rem;'>Para que funcione, debes usar Google Chrome o Safari.</p>
+    <div id='diag' style='color:#f1c40f;font-size:0.8rem;margin:10px 0;'></div>
+    <button class='btn btn-green' onclick='pedirPermisos()'>PERMITIR CÁMARA</button>
+    <div id='error' class='err'></div>
   </div>
-  
-  <div style='margin-top:40px;font-size:0.8rem;color:#555;text-align:center;'>
-    Asegúrate de estar usando HTTPS y permitir cámara/micro.
+
+  <div id='step2' class='box' style='display:none;'>
+    <h3>Paso 2: Activar</h3>
+    <input id='myId' type='tel' placeholder='Tu número (ej: 1001)'>
+    <button class='btn btn-blue' onclick='entrar()'>ENTRAR AL TELÉFONO</button>
   </div>
-</div>
 
-<div id='mainScreen' class='screen'>
-  <div style='display:flex;justify-content:space-between;align-items:center;'>
-    <span id='statusLabel'>● Conectado</span>
-    <span id='myIdLabel' style='color:var(--accent);font-weight:bold;'></span>
+  <div id='app' style='display:none;'>
+    <h2 id='miIdShow'></h2>
+    <input id='dest' type='tel' placeholder='Número a llamar'>
+    <button class='btn btn-green' onclick='llamar()'>LLAMAR</button>
+    <button class='btn' style='background:#ff453a;color:#fff' onclick='location.reload()'>CERRAR</button>
+    <video id='remote' autoplay playsinline style='width:100%;margin-top:20px;border-radius:10px;background:#111;min-height:200px;'></video>
+    <video id='local' autoplay playsinline muted style='width:100px;position:fixed;top:10px;right:10px;border:2px solid #fff;border-radius:10px;'></video>
   </div>
-  
-  <div id='display'></div>
-  
-  <div class='dial-pad'>
-    <button class='key' onclick='press("1")'>1</button><button class='key' onclick='press("2")'>2</button><button class='key' onclick='press("3")'>3</button>
-    <button class='key' onclick='press("4")'>4</button><button class='key' onclick='press("5")'>5</button><button class='key' onclick='press("6")'>6</button>
-    <button class='key' onclick='press("7")'>7</button><button class='key' onclick='press("8")'>8</button><button class='key' onclick='press("9")'>9</button>
-    <button class='key' onclick='press("*")'>*</button><button class='key' onclick='press("0")'>0</button><button class='key' onclick='press("C")'>X</button>
-    <button class='key' style='background:var(--accent);grid-column:span 3;width:100%;border-radius:15px;margin-top:10px;' onclick='makeCall()'>LLAMAR</button>
+
+  <div style='margin-top:30px;'>
+    <button class='btn' style='background:#333;color:#fff;font-size:0.8rem;' onclick='copiarLink()'>Copiar Link para abrir en Chrome</button>
   </div>
-</div>
 
-<div id='videoArea'>
-  <video id='remoteVid' autoplay playsinline></video>
-  <video id='localVid' autoplay playsinline muted style='position:absolute;top:20px;right:20px;width:100px;height:140px;border-radius:12px;border:2px solid #fff;'></video>
-  <div class='controls'><button class='hangup' onclick='endCall()'>📵</button></div>
-</div>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script>
+    let stream, peer;
 
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-<script>
-let peer, localStream, currentCall, dialStr = "", ringInt;
+    window.onload = () => {
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        document.getElementById('diag').innerText = "AVISO: Estás en un navegador limitado. Copia el link y ábrelo en CHROME.";
+      }
+    };
 
-function showError(txt){
-  const b = document.getElementById("errBox");
-  b.innerText = txt; b.style.display = "block";
-}
-
-async function checkAndStart(){
-  const id = document.getElementById("myId").value;
-  if(!id) return showError("Escribe un número para tu cuenta");
-
-  try {
-    // Intentar pedir permisos ANTES de iniciar todo
-    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-    document.getElementById("localVid").srcObject = localStream;
-    
-    startPeer(id);
-  } catch(e) {
-    showError("ERROR: No se pudo acceder a la cámara. Ve a los ajustes del navegador y permite el acceso para esta página.");
-    console.error(e);
-  }
-}
-
-function startPeer(id){
-  peer = new Peer("nemu-"+id, {host:"0.peerjs.com", port:443, secure:true});
-  
-  peer.on("open", () => {
-    document.getElementById("myIdLabel").innerText = "ID: " + id;
-    document.getElementById("setupScreen").classList.remove("active");
-    document.getElementById("mainScreen").classList.add("active");
-  });
-
-  peer.on("call", call => {
-    if(confirm("Llamada entrante de " + call.peer.replace("nemu-","") + ". ¿Contestar?")){
-      call.answer(localStream);
-      setupCall(call);
-    } else {
-      call.close();
+    async function pedirPermisos(){
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+        document.getElementById('local').srcObject = stream;
+        document.getElementById('step1').style.display = "none";
+        document.getElementById('step2').style.display = "block";
+      } catch(e) {
+        document.getElementById('error').innerText = "Error: No se pudo activar la cámara. Revisa los permisos del navegador.";
+        document.getElementById('error').style.display = "block";
+      }
     }
-  });
 
-  peer.on("error", e => showError("Error de conexión: " + e.type));
-}
+    function entrar(){
+      const id = document.getElementById("myId").value;
+      if(!id) return;
+      peer = new Peer("nemu-"+id, {host:"0.peerjs.com", port:443, secure:true});
+      peer.on("open", () => {
+        document.getElementById("miIdShow").innerText = "ID: " + id;
+        document.getElementById("step2").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      });
+      peer.on("call", call => {
+        if(confirm("Contestar?")){
+          call.answer(stream);
+          call.on("stream", rs => document.getElementById("remote").srcObject = rs);
+        }
+      });
+    }
 
-function press(n){
-  if(n=="C") dialStr = ""; else dialStr += n;
-  document.getElementById("display").innerText = dialStr;
-}
+    function llamar(){
+      const d = document.getElementById("dest").value;
+      const call = peer.call("nemu-"+d, stream);
+      call.on("stream", rs => document.getElementById("remote").srcObject = rs);
+    }
 
-function makeCall(){
-  if(!dialStr) return;
-  startRingtone();
-  currentCall = peer.call("nemu-"+dialStr, localStream);
-  setupCall(currentCall);
-}
-
-function setupCall(call){
-  currentCall = call;
-  document.getElementById("videoArea").style.display = "flex";
-  
-  call.on("stream", rs => {
-    stopRingtone();
-    document.getElementById("remoteVid").srcObject = rs;
-  });
-  call.on("close", endCall);
-  call.on("error", endCall);
-}
-
-function endCall(){
-  stopRingtone();
-  if(currentCall) currentCall.close();
-  document.getElementById("videoArea").style.display = "none";
-  dialStr = "";
-  document.getElementById("display").innerText = "";
-}
-
-function startRingtone(){
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  ringInt = setInterval(() => {
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.frequency.setValueAtTime(440, ctx.currentTime);
-    g.gain.setValueAtTime(0.1, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(); o.stop(ctx.currentTime + 0.6);
-  }, 1000);
-}
-
-function stopRingtone(){ if(ringInt) clearInterval(ringInt); }
-</script>
+    function copiarLink(){
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copiado. Ábrelo en la app de Chrome de tu celular.");
+    }
+  </script>
 </body>
 </html>
